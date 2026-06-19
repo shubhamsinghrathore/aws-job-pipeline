@@ -1,0 +1,12 @@
+{
+  "name": "worker-service",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": { "start": "node index.js" },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.600.0",
+    "@aws-sdk/client-sqs": "^3.600.0",
+    "@aws-sdk/client-dynamodb": "^3.600.0"
+  }
+}

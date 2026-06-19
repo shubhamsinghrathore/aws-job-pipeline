@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-config
+data:
+  # Pods run INSIDE kind; the host's :4566 (Floci) is reachable via host.docker.internal
+  AWS_ENDPOINT: "http://host.docker.internal:4566"
+  AWS_REGION: "us-east-1"
+  AWS_ACCESS_KEY_ID: "test"
+  AWS_SECRET_ACCESS_KEY: "test"

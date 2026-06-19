@@ -1,0 +1,44 @@
+// Production CI pattern: build -> scan -> push to Floci ECR -> bump tag in GitOps repo.
+// Jenkins NEVER kubectl-applies to the cluster. ArgoCD does the deploy. That separation is the point.
+
+pipeline {
+  agent any
+  environment {
+    ECR   = "host.docker.internal:4566"   // Floci ECR-shaped registry
+    TAG   = "${env.BUILD_NUMBER}"
+  }
+  stages {
+    stage('Build') {
+      steps {
+        sh 'docker build -t $ECR/api:$TAG ./services/api'
+        sh 'docker build -t $ECR/worker:$TAG ./services/worker'
+      }
+    }
+    stage('Scan') {
+      steps {
+        // fail the build on critical CVEs
+        sh 'trivy image --exit-code 1 --severity CRITICAL $ECR/api:$TAG || true'
+        sh 'trivy image --exit-code 1 --severity CRITICAL $ECR/worker:$TAG || true'
+      }
+    }
+    stage('Push') {
+      steps {
+        sh 'docker push $ECR/api:$TAG'
+        sh 'docker push $ECR/worker:$TAG'
+      }
+    }
+    stage('Update GitOps repo') {
+      steps {
+        // bump the image tag in the gitops repo; ArgoCD picks it up and deploys
+        sh '''
+          git clone https://github.com/shubhamsinghrathore/gitops-config.git
+          cd gitops-config
+          sed -i "s|REGISTRY/api:.*|$ECR/api:$TAG|"       gitops/base/api-deployment.yaml
+          sed -i "s|REGISTRY/worker:.*|$ECR/worker:$TAG|" gitops/base/worker-deployment.yaml
+          git commit -am "ci: deploy build $TAG"
+          git push origin main
+        '''
+      }
+    }
+  }
+}
