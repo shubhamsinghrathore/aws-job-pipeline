@@ -12,6 +12,6 @@ spec:
     spec:
       containers:
         - name: worker
-          image: REGISTRY/worker:latest   # CI rewrites this tag
+          image: host.docker.internal:5100/worker:1  # CI rewrites this tag
           envFrom:
             - configMapRef: { name: aws-config }

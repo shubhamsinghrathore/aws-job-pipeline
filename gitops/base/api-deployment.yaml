@@ -12,7 +12,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: REGISTRY/api:latest   # CI rewrites this tag
+          image:  host.docker.internal:5100/api:1  # CI rewrites this tag
           ports: [{ containerPort: 3000 }]
           envFrom:
             - configMapRef: { name: aws-config }
